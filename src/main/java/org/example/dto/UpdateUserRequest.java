@@ -1,5 +1,11 @@
 
 package org.example.dto;
 
-public class UpdateUserRequest {
+public record UpdateUserRequest(
+        String username,
+        String email,
+        String displayName,
+        String profileImageUrl,
+        String bio
+) {
 }

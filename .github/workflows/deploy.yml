@@ -83,5 +83,3 @@ jobs:
               -e MONGODB_URI=mongodb://mongo-users:27017/plataforma-filmes \
               ${{ secrets.DOCKERHUB_USERNAME }}/plataforma-filmes-users:${{ github.sha }}
 
-
-

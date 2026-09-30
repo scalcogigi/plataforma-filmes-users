@@ -33,7 +33,7 @@ jobs:
         uses: madrapps/jacoco-report@v1.7.2
         with:
           paths: |
-            target/site/jacoco/jacoco.xml
+            tests/jacoco.xml
           token: ${{ secrets.GITHUB_TOKEN }}
           min-coverage-overall: 80
           min-coverage-changed-files: 80

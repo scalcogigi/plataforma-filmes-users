@@ -1,4 +1,87 @@
-# Plataforma de filmes — Users
+# Plataforma de Filmes — Serviço de Usuários
+
+Este projeto implementa a parte de usuários da Plataforma de Filmes. A aplicação disponibiliza uma API REST para criar, consultar, atualizar e remover perfis de usuários, mantendo os dados persistidos em MongoDB.
+
+## Tecnologias
+
+- Java 24
+- Spring Boot 3.5.5
+- Spring Web e Spring Data MongoDB
+- Maven Wrapper
+- JUnit, Mockito e MockMvc para testes
+- JaCoCo para cobertura
+
+## Organização
+
+- `controller`: endpoints HTTP da API (`/users`);
+- `service`: regras de negócio;
+- `repository`: acesso aos dados no MongoDB;
+- `entity`: modelo persistido de usuário;
+- `dto`: objetos de requisição e resposta;
+- `exception`: exceções e tratamento global de erros;
+- `config`: configurações da aplicação e do MongoDB.
+
+## Executando localmente
+
+Pré-requisitos: JDK 24 ou superior e MongoDB local ou uma URI válida.
+
+Na raiz do projeto, execute:
+
+```powershell
+.\mvnw.cmd spring-boot:run
+```
+
+A API ficará disponível em `http://localhost:8080`.
+
+Para executar os testes:
+
+```powershell
+.\mvnw.cmd clean test
+```
+
+No Linux/macOS, use `./mvnw` no lugar de `.\mvnw.cmd`.
+
+## Configuração
+
+As configurações padrão estão em `src/main/resources/application.properties`:
+
+| Variável | Padrão | Descrição |
+| --- | --- | --- |
+| `MONGODB_URI` | `mongodb://localhost:27017/plataforma-filmes` | URI do MongoDB |
+| `SERVER_PORT` | `8080` | Porta HTTP |
+
+Exemplo no PowerShell:
+
+```powershell
+$env:MONGODB_URI = "mongodb://localhost:27017/plataforma-filmes"
+$env:SERVER_PORT = "8080"
+.\mvnw.cmd spring-boot:run
+```
+
+## Endpoints principais
+
+| Método | Rota | Objetivo |
+| --- | --- | --- |
+| `POST` | `/users` | Cria um usuário |
+| `GET` | `/users` | Lista todos os usuários |
+| `GET` | `/users/{id}` | Consulta um usuário pelo ID |
+| `PUT` | `/users/{id}` | Atualiza um usuário |
+| `DELETE` | `/users/{id}` | Remove um usuário |
+
+Exemplo de criação:
+
+```json
+{
+  "auth0UserId": "auth0|123456",
+  "username": "usuario.demo",
+  "email": "usuario@exemplo.com",
+  "displayName": "Usuário Demo",
+  "profileImageUrl": "https://exemplo.com/avatar.png",
+  "bio": "Perfil de demonstração"
+}
+```
+
+O cadastro responde com `201 Created`; consultas bem-sucedidas, com `200 OK`; a exclusão, com `204 No Content`. Recursos inexistentes são tratados como `404 Not Found`.
 
 ## Testes e cobertura
 

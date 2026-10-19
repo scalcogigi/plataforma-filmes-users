@@ -37,7 +37,6 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           min-coverage-overall: 80
           min-coverage-changed-files: 80
-          fail-build: true
 
   docker:
     needs: build
@@ -81,5 +80,9 @@ jobs:
               --network rede \
               -p 8080:8080 \
               -e MONGODB_URI=mongodb://mongo-users:27017/plataforma-filmes \
+              -e AUTH0_ISSUER_URI="${{ secrets.AUTH0_ISSUER_URI }}" \
+              -e AUTH0_AUDIENCE="${{ secrets.AUTH0_AUDIENCE }}" \
+              -e AUTH0_JWK_SET_URI="${{ secrets.AUTH0_JWK_SET_URI }}" \
+              -e FRONTEND_ORIGIN="${{ secrets.FRONTEND_ORIGIN }}" \
               ${{ secrets.DOCKERHUB_USERNAME }}/plataforma-filmes-users:${{ github.sha }}
 

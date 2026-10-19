@@ -1,11 +1,12 @@
-
 package org.example.service;
 
+import org.example.dto.UserRequest;
 import org.example.entity.User;
 import org.example.exception.ResourceNotFoundException;
 import org.example.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.List;
 
 @Service
@@ -17,33 +18,61 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
-    public User create(User user) {
+    public User syncAuthenticatedUser(
+            String auth0UserId,
+            UserRequest request
+    ) {
+        User user = userRepository
+                .findByAuth0UserId(auth0UserId)
+                .orElseGet(() ->
+                        new User(
+                                auth0UserId,
+                                request.username(),
+                                request.email()
+                        )
+                );
+
+        user.setUsername(request.username());
+        user.setEmail(request.email());
+        user.setDisplayName(request.displayName());
+        user.setProfileImageUrl(request.profileImageUrl());
+        user.setBio(request.bio());
+        user.setUpdateAt(Instant.now());
+
         return userRepository.save(user);
     }
 
+    public User findAuthenticatedUser(String auth0UserId) {
+        return userRepository
+                .findByAuth0UserId(auth0UserId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Perfil do usuário autenticado não encontrado."
+                        )
+                );
+    }
+
     public User findById(String id) {
-        return userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado: " + id));
+        return userRepository
+                .findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Usuário não encontrado: " + id
+                        )
+                );
     }
 
     public List<User> findAll() {
         return userRepository.findAll();
     }
 
-    public User update(String id, User updatedUser) {
-        User existingUser = findById(id);
+    public void deleteAuthenticatedUser(
+            String auth0UserId
+    ) {
+        User user =
+                findAuthenticatedUser(auth0UserId);
 
-        existingUser.setUsername(updatedUser.getUsername());
-        existingUser.setEmail(updatedUser.getEmail());
-        existingUser.setDisplayName(updatedUser.getDisplayName());
-        existingUser.setProfileImageUrl(updatedUser.getProfileImageUrl());
-        existingUser.setBio(updatedUser.getBio());
-
-        return userRepository.save(existingUser);
-    }
-
-    public void delete(String id) {
-        User user = findById(id);
         userRepository.delete(user);
     }
+    
 }

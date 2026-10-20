@@ -2,6 +2,7 @@ package org.example.exception;
 
 import org.example.controller.UserController;
 import org.example.service.UserService;
+import org.example.factory.UserResponseFactory;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -14,8 +15,9 @@ class GlobalExceptionHandlerTest {
     @Test
     void deveRetornar500SemExporDetalhesInternos() throws Exception {
         UserService service = mock(UserService.class);
+        UserResponseFactory responseFactory = mock(UserResponseFactory.class);
         when(service.findAll()).thenThrow(new IllegalStateException("detalhes privados do banco"));
-        MockMvc mvc = MockMvcBuilders.standaloneSetup(new UserController(service))
+        MockMvc mvc = MockMvcBuilders.standaloneSetup(new UserController(service, responseFactory))
                 .setControllerAdvice(new GlobalExceptionHandler()).build();
 
         mvc.perform(get("/users"))

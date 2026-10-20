@@ -4,6 +4,7 @@ import org.example.dto.UserRequest;
 import org.example.entity.User;
 import org.example.exception.ResourceNotFoundException;
 import org.example.repository.UserRepository;
+import org.example.strategy.RecommendationStrategy;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -24,6 +25,9 @@ class UserServiceTest {
 
     @Mock
     private UserRepository repository;
+
+    @Mock
+    private RecommendationStrategy recommendationStrategy;
 
     @InjectMocks
     private UserService service;
@@ -244,5 +248,47 @@ class UserServiceTest {
         ).isInstanceOf(ResourceNotFoundException.class);
 
         verify(repository, never()).delete(any(User.class));
+    }
+
+    @Test
+    void deveSeguirEDeixarDeSeguirAtualizandoOsDoisLados() {
+        User ana = user("ana", "Ana");
+        User bruno = user("bruno", "Bruno");
+        when(repository.findByAuth0UserId("auth0|ana")).thenReturn(Optional.of(ana));
+        when(repository.findById("bruno")).thenReturn(Optional.of(bruno));
+        when(repository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        service.follow("auth0|ana", "bruno");
+        assertThat(ana.getSeguindoIds()).containsExactly("bruno");
+        assertThat(bruno.getSeguidoresIds()).containsExactly("ana");
+
+        service.unfollow("auth0|ana", "bruno");
+        assertThat(ana.getSeguindoIds()).isEmpty();
+        assertThat(bruno.getSeguidoresIds()).isEmpty();
+    }
+
+    @Test
+    void deveRecomendarRedeSemDuplicarNemIncluirProprioUsuarioOuSeguidos() {
+        User ana = user("ana", "Ana");
+        User bruno = user("bruno", "Bruno");
+        User carla = user("carla", "Carla");
+        User davi = user("davi", "Davi");
+        ana.setSeguindoIds(List.of("bruno"));
+        bruno.setSeguindoIds(List.of("carla", "davi"));
+        bruno.setSeguidoresIds(List.of("carla"));
+        when(repository.findByAuth0UserId("auth0|ana")).thenReturn(Optional.of(ana));
+        when(repository.findAll()).thenReturn(List.of(ana, bruno, carla, davi));
+        when(recommendationStrategy.recommend(ana, List.of(ana, bruno, carla, davi), 5))
+                .thenReturn(List.of(carla, davi));
+
+        assertThat(service.recommendations("auth0|ana").stream().map(User::getId))
+                .containsExactly("carla", "davi");
+    }
+
+    private static User user(String id, String name) {
+        User user = new User("auth0|" + id, id, id + "@example.com");
+        user.setId(id);
+        user.setDisplayName(name);
+        return user;
     }
 }

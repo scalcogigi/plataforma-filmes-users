@@ -18,6 +18,8 @@ public record UserResponse(
         List<String> filmesFavoritosIds,
         List<String> seguidoresIds,
         List<String> seguindoIds,
+        int followersCount,
+        int followingCount,
         Instant createdAt,
         Instant updateAt
 ) {
@@ -35,6 +37,8 @@ public record UserResponse(
                 user.getFilmesFavoritosIds(),
                 user.getSeguidoresIds(),
                 user.getSeguindoIds(),
+                user.getSeguidoresIds() == null ? 0 : (int) user.getSeguidoresIds().stream().distinct().count(),
+                user.getSeguindoIds() == null ? 0 : (int) user.getSeguindoIds().stream().distinct().count(),
                 user.getCreatedAt(),
                 user.getUpdateAt()
         );

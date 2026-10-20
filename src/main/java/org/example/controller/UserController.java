@@ -4,6 +4,7 @@ import org.example.dto.UserRequest;
 import org.example.dto.UserResponse;
 import org.example.entity.User;
 import org.example.service.UserService;
+import org.example.factory.UserResponseFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -16,11 +17,14 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
+    private final UserResponseFactory userResponseFactory;
 
     public UserController(
-            UserService userService
+            UserService userService,
+            UserResponseFactory userResponseFactory
     ) {
         this.userService = userService;
+        this.userResponseFactory = userResponseFactory;
     }
 
     @PutMapping("/me")
@@ -34,7 +38,7 @@ public class UserController {
                         request
                 );
 
-        return UserResponse.fromEntity(user);
+        return userResponseFactory.create(user);
     }
 
     @GetMapping("/me")
@@ -46,7 +50,7 @@ public class UserController {
                         jwt.getSubject()
                 );
 
-        return UserResponse.fromEntity(user);
+        return userResponseFactory.create(user);
     }
 
     @DeleteMapping("/me")
@@ -64,7 +68,7 @@ public class UserController {
     public UserResponse findById(
             @PathVariable String id
     ) {
-        return UserResponse.fromEntity(
+        return userResponseFactory.create(
                 userService.findById(id)
         );
     }
@@ -73,7 +77,26 @@ public class UserController {
     public List<UserResponse> findAll() {
         return userService.findAll()
                 .stream()
-                .map(UserResponse::fromEntity)
+                .map(userResponseFactory::create)
                 .toList();
+    }
+
+    @GetMapping("/recommendations")
+    public List<UserResponse> recommendations(@AuthenticationPrincipal Jwt jwt) {
+        return userService.recommendations(jwt.getSubject()).stream()
+                .map(userResponseFactory::create)
+                .toList();
+    }
+
+    @PostMapping("/{id}/follow")
+    public ResponseEntity<Void> follow(@AuthenticationPrincipal Jwt jwt, @PathVariable String id) {
+        userService.follow(jwt.getSubject(), id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/{id}/follow")
+    public ResponseEntity<Void> unfollow(@AuthenticationPrincipal Jwt jwt, @PathVariable String id) {
+        userService.unfollow(jwt.getSubject(), id);
+        return ResponseEntity.noContent().build();
     }
 }
